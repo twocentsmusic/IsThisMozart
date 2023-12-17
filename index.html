@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>jsPsych Audio with Sliders</title>
+  <script src="https://cdn.jsdelivr.net/npm/jspsych@6.3.1/jspsych.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspsych@6.3.1/plugins/jspsych-html-keyboard-response.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspsych@6.3.1/plugins/jspsych-audio-keyboard-response.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspsych@6.3.1/plugins/jspsych-html-slider-response.js"></script>
+</head>
+<body>
+
+<script>
+  // Define audio file paths
+  var audioFile1 = "sounds/mozart11.mp3";
+  var audioFile2 = "sounds/mozart12.mp3";
+
+  // Define the experiment timeline
+  var timeline = [];
+
+  // Welcome message
+  var welcome = {
+    type: "html-keyboard-response",
+    stimulus: "<p>Welcome to the Audio Experiment!</p><p>Press any key to continue.</p>",
+  };
+  timeline.push(welcome);
+
+  // Audio trial 1
+  var audioTrial1 = {
+    type: "audio-keyboard-response",
+    stimulus: audioFile1,
+    prompt: "<p>Listen to the audio and rate it using the slider below.</p>",
+    choices: jsPsych.NO_KEYS,
+    trial_ends_after_audio: true,
+  };
+  timeline.push(audioTrial1);
+
+  // Slider trial 1
+  var sliderTrial1 = {
+    type: "html-slider-response",
+    stimulus: "Rate the audio you just heard:",
+    labels: ["Bad", "Good"],
+    require_movement: true,
+  };
+  timeline.push(sliderTrial1);
+
+  // Audio trial 2
+  var audioTrial2 = {
+    type: "audio-keyboard-response",
+    stimulus: audioFile2,
+    prompt: "<p>Listen to the next audio and rate it using the slider below.</p>",
+    choices: jsPsych.NO_KEYS,
+    trial_ends_after_audio: true,
+  };
+  timeline.push(audioTrial2);
+
+  // Slider trial 2
+  var sliderTrial2 = {
+    type: "html-slider-response",
+    stimulus: "Rate the second audio:",
+    labels: ["Bad", "Good"],
+    require_movement: true,
+  };
+  timeline.push(sliderTrial2);
+
+  // Display thank you message
+  var thankYou = {
+    type: "html-keyboard-response",
+    stimulus: "<p>Thank you for participating!</p><p>Your responses have been recorded.</p>",
+    trial_duration: 3000,
+  };
+  timeline.push(thankYou);
+
+  // Run the experiment
+  jsPsych.init({
+    timeline: timeline,
+    on_finish: function (data) {
+    // Send data to Google Sheets
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwXbCWeIOsWoWjg2aL9S2PYMjOGYOsmKBtrOQH83zOaGbFXqLZxjdJWci-ZWshLVWXQXg/exec';
+    const jsonData = JSON.stringify(data);
+
+    fetch(scriptURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonData,
+    })
+      .then(response => response.text())
+      .then(data => console.log(data))
+      .catch(error => console.error('Error saving data:', error));
+  }
+});
+</script>
+
+</body>
+</html>
