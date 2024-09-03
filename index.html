@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Have you heard this before?</title>
+    <script src="jspsych/jspsych.js"></script>
+    <script src="jspsych/jspsychsheet.js"></script>
+    <script src="jspsych/plugin-survey-text.js"></script>
+    <script src="jspsych/plugin-preload.js"></script>
+    <script src="jspsych/plugin-html-keyboard-response.js"></script>
+    <script src="jspsych/plugin-html-button-response.js"></script>
+    <script src="jspsych/plugin-html-slider-response.js"></script>
+    <script src="jspsych/plugin-audio-button-response.js"></script>
+    <script src="jspsych/plugin-audio-keyboard-response.js"></script>
+    <script src="jspsych/plugin-audio-slider-response.js"></script>
+    <link href="jspsych/jspsych.css" rel="stylesheet" type="text/css" />
+    <link href="jspsych/jspsychsheet.css" rel="stylesheet" type="text/css" />
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <style>
+        .jspsych-display-element {
+            font-size: 24px;
+        }
+    </style>
+</head>
+  <body></body>
+  <script>
+    var jsPsych = initJsPsych({
+        show_progress_bar: true,
+        on_finish: function () {
+        url = "https://script.google.com/macros/s/AKfycbxL65LDpZtcPX9gJWv9IFaH7y3kt3ODyPTDy6QeI1e4XKsYracWc1hObnJutbxJh0YO/exec";
+        jsPsychSheet.uploadData(url, jsPsych.data.get().csv())
+        }
+    });
+    var timeline = [];
+
+    var preload = {
+    type: jsPsychPreload,
+    auto_preload: true
+    }
+
+    var idInputTrial = {
+            type: jsPsychSurveyText,
+            questions: [
+                {prompt: 'User ID:', placeholder: '000000', required: true},
+            ]
+    };
+    timeline.push(idInputTrial);
+
+    var welcome = {
+        type: jsPsychHtmlButtonResponse,
+            stimulus: `
+            <p>Welcome to the experiment.</p>
+            `,
+            choices:['Continue to instructions']
+    };
+    timeline.push(welcome);
+
+    var instructions = {
+    type: jsPsychHtmlKeyboardResponse,
+    stimulus: `
+    <p>In the following test you will be presented with musical theme by Mozart.</p>
+    <p>You will then hear 12 short music clips.</p>
+    <p>Please rate the 12 clips on how sure you are that each could or could not belong to the
+        <br>composition by Mozart that you heard at the beginning.</p>
+    <p>If you are very sure the clip was NOT part of the original Mozart composition,
+        <br>move the slider all the way to the left.</p>
+    <p>If you are very sure the clip was part of the composition move it all the way to the right.</p>
+    <p>If you are less certain, move your slider somewhere in between to the position that best
+        <br>reflects your certainty of whether the clip was or was not in the original Mozart.</p>
+        <p>Press any key to continue.</p>
+    `,
+  };
+  timeline.push(instructions);
+
+  var audiopresentation = {
+    type: jsPsychAudioButtonResponse,
+    prompt: "This is an excerpt of a composition by Mozart.",
+    stimulus: "sounds/mozart.mp3",
+    choices: ['Proceed to experimental trials'],
+    response_allowed_while_playing: true,
+  };
+  timeline.push(audiopresentation);
+
+  var audioStimuli = ["sounds/mozart1.mp3", "sounds/mozart2.mp3", "sounds/mozart3.mp3", "sounds/mozart4.mp3", "sounds/mozart5.mp3", "sounds/mozart6.mp3",
+  "sounds/mozart7.mp3", "sounds/mozart8.mp3", "sounds/mozart9.mp3", "sounds/mozart10.mp3", "sounds/mozart11.mp3", "sounds/mozart12.mp3"];
+
+  function shuffle(array) {
+    var currentIndex = array.length, temporaryValue, randomIndex;
+
+    while (0 !== currentIndex) {
+
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+    }
+
+    return array;
+  }
+
+  audioStimuli = shuffle(audioStimuli);
+
+  for (var i = 0; i < audioStimuli.length; i++) {
+    var audioslide = {
+        type: jsPsychAudioSliderResponse,
+        prompt: "Do you think this is by Mozart?",
+        stimulus: audioStimuli[i],
+        start: 50,
+        step: 0.01,
+        labels: ['<span style="font-size: 0.8em;">1<br>Very sure it <strong>IS NOT</strong></span>', 
+              '<span style="font-size: 0.8em;">2</span>', 
+              '<span style="font-size: 0.8em;">3</span>', 
+              '<span style="font-size: 0.8em;">4</span>', 
+              '<span style="font-size: 0.8em;">5</span>', 
+              '<span style="font-size: 0.8em;">6</span>', 
+              '<span style="font-size: 0.8em;">7</span>',
+              '<span style="font-size: 0.8em;">8<br>Very sure it <strong>IS</strong></span>'],
+        response_allowed_while_playing: true,
+        slider_width: 1000,
+        require_movement: true,
+        button_label: 'Next',
+    };
+    timeline.push(audioslide);
+  }
+
+  var end = {
+        type: jsPsychHtmlButtonResponse,
+        stimulus: `
+        <p>You've come to the end of the experiment.</p>
+        <p>Thank you for participating.</p>
+        <p>You've contributed to science!</p>
+        <p>Woohoo!</p>
+        `,
+        choices:['End experiment and upload my data'],
+        on_finish: function(data) {
+            document.body.innerHTML += '<p>Please wait for your data to finish uploading before closing the browser window.</p>';
+        },
+    };
+    timeline.push(end);
+
+    var all_data = jsPsych.data.get();
+    console.log(all_data.csv());
+
+    jsPsych.run(timeline);
+
+  </script>
+</html>
